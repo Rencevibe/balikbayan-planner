@@ -1,0 +1,1445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#E9D3B8">
+<meta name="description" content="Plan and track what goes into each balikbayan box.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Balikbayan Box Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one working column — kraft header with packing-tape band, summary, box cards (filter + details), toolbar, table. Recipients and checklist on their own tabs. Tables become cards on phones. */
+:root {
+  --bg: #FBF5EF;
+  --surface: #FFFFFF;
+  --sunk: #F4EAE0;
+  --kraft: #E9D3B8;
+  --ink: #2B1D16;
+  --muted: #7A6558;
+  --line: #EADCCF;
+  --accent: #E39B17;
+  --accent-soft: #FBEBCB;
+  --accent-ink: #3A2406;
+  --strong: #9A4A14;
+  --ok: #2F7D4F;
+  --ok-soft: #E3F1E8;
+  --info: #2F5FA8;
+  --info-soft: #E2EAF7;
+  --warn: #B4570B;
+  --warn-soft: #FCEBD7;
+  --danger: #B3261E;
+  --c-clothing: #D9733A;
+  --c-food: #C9A227;
+  --c-toiletries: #3E9A9A;
+  --c-household: #8C6A4F;
+  --c-school: #5B7FC7;
+  --c-gifts: #C2507A;
+  --c-other: #9A8A80;
+  --shadow: 0 1px 2px rgb(60 30 10 / .06), 0 4px 14px rgb(60 30 10 / .06);
+  --shadow-lift: 0 2px 4px rgb(60 30 10 / .08), 0 10px 24px rgb(60 30 10 / .10);
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --r: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1B1411; --surface: #251C17; --sunk: #2E231D; --kraft: #4A3726; --ink: #F6EBE1; --muted: #B7A193;
+    --line: #3B2D25; --accent: #F2B33A; --accent-soft: #3D2C10; --accent-ink: #2A1904; --strong: #F2A66E;
+    --ok: #74C795; --ok-soft: #1F3328; --info: #8DB0EC; --info-soft: #1E2A3D; --warn: #F5A55A; --warn-soft: #3A2615; --danger: #F2867E;
+    --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 4px 14px rgb(0 0 0 / .25);
+    --shadow-lift: 0 2px 4px rgb(0 0 0 / .35), 0 10px 24px rgb(0 0 0 / .35); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1B1411; --surface: #251C17; --sunk: #2E231D; --kraft: #4A3726; --ink: #F6EBE1; --muted: #B7A193;
+  --line: #3B2D25; --accent: #F2B33A; --accent-soft: #3D2C10; --accent-ink: #2A1904; --strong: #F2A66E;
+  --ok: #74C795; --ok-soft: #1F3328; --info: #8DB0EC; --info-soft: #1E2A3D; --warn: #F5A55A; --warn-soft: #3A2615; --danger: #F2867E;
+  --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 4px 14px rgb(0 0 0 / .25);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / .35), 0 10px 24px rgb(0 0 0 / .35); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-body); }
+.wrap { max-width: 1160px; margin: 0 auto; padding-inline: 16px; padding-block: 22px 72px; display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.8rem, 4.4vw, 2.6rem); line-height: 1.05; font-weight: 800; }
+h2 { font-size: 1.05rem; }
+.eyebrow { margin: 0 0 6px; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--strong); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Header with packing-tape band */
+.hero { background: var(--kraft); padding-inline: 16px; position: relative; }
+.hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 14px;
+  background: repeating-linear-gradient(-45deg, var(--accent) 0 14px, color-mix(in srgb, var(--accent) 78%, var(--surface)) 14px 28px); }
+.hero-in { max-width: 1160px; margin: 0 auto; padding-block: 28px 38px; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
+.hero-in p.sub { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; }
+.head-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tabs { display: inline-flex; background: color-mix(in srgb, var(--surface) 55%, transparent); border-radius: 999px; padding: 4px; gap: 2px; flex-wrap: wrap; }
+.tabs button { border: 0; background: transparent; padding: 8px 14px; border-radius: 999px; font-weight: 600; cursor: pointer; color: var(--muted); transition: background .15s, color .15s; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.tabs .count { font-family: var(--f-mono); font-size: 0.76rem; color: var(--muted); margin-left: 4px; }
+.iconbtn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: color-mix(in srgb, var(--surface) 55%, transparent); display: grid; place-items: center; cursor: pointer; color: var(--ink); }
+.iconbtn:hover { background: var(--surface); }
+.iconbtn svg { width: 19px; height: 19px; }
+
+/* Summary */
+.summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.stat { background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow); padding: 14px 16px; display: grid; gap: 2px; }
+.stat span { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
+.stat b { font-family: var(--f-display); font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.bar { height: 6px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--ok); width: 0; transition: width .45s cubic-bezier(.2,.8,.2,1); border-radius: 3px; }
+.bar.warnbar i { background: var(--accent); }
+.bar.overbar i { background: var(--warn); }
+.stat .bar { margin-top: 6px; }
+
+/* Reminders */
+.reminders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.reminders li { display: grid; grid-template-columns: auto 1fr; gap: 1px 10px; padding: 12px 14px; border-radius: var(--r); border: 1px dashed var(--line); font-size: 0.85rem; color: var(--muted); }
+.reminders svg { grid-row: span 2; width: 20px; height: 20px; color: var(--strong); margin-top: 1px; }
+.reminders strong { color: var(--ink); font-weight: 600; }
+
+/* Box cards */
+.sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.sec-head p { margin: 0; font-size: 0.85rem; color: var(--muted); }
+.boxgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.boxcard { position: relative; border: 1.5px solid transparent; background: var(--surface); box-shadow: var(--shadow); border-radius: var(--r); padding: 14px; display: grid; gap: 8px; align-content: start; transition: transform .18s ease, box-shadow .18s ease, border-color .18s; }
+.boxcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+.boxcard.sel { border-color: var(--ink); }
+.bc-hit { position: absolute; inset: 0; border: 0; background: transparent; border-radius: inherit; cursor: pointer; z-index: 0; }
+.bc-hit:focus-visible { outline-offset: -2px; }
+.boxcard > :not(.bc-hit) { position: relative; z-index: 1; pointer-events: none; }
+.bc-top { display: flex; align-items: center; gap: 8px; }
+.bc-name { font-family: var(--f-display); font-weight: 700; font-size: 1.12rem; margin-right: auto; }
+.bc-edit { pointer-events: auto; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; width: 30px; height: 30px; display: grid; place-items: center; cursor: pointer; color: var(--muted); }
+.bc-edit:hover { color: var(--ink); border-color: var(--muted); }
+.bc-edit svg { width: 15px; height: 15px; }
+.bc-sub { font-size: 0.78rem; color: var(--muted); min-height: 1.2em; }
+.bc-meta { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bc-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bc-row b { color: var(--ink); font-weight: 600; }
+.catbar { display: flex; gap: 2px; height: 8px; border-radius: 4px; overflow: hidden; background: var(--sunk); }
+.catbar span { background: var(--dot); min-width: 3px; transition: flex-grow .45s ease; }
+.pill { justify-self: start; font-size: 0.72rem; font-weight: 700; border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.status { font-size: 0.7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 999px; padding: 2px 8px; background: var(--sunk); color: var(--muted); white-space: nowrap; }
+.status.s-sealed { background: var(--accent-soft); color: var(--strong); }
+.status.s-shipped { background: var(--info-soft); color: var(--info); }
+.status.s-delivered { background: var(--ok-soft); color: var(--ok); }
+.boxcard.add { border: 1.5px dashed var(--line); box-shadow: none; background: transparent; place-content: center; justify-items: center; color: var(--muted); font-weight: 600; min-height: 150px; cursor: pointer; }
+.boxcard.add:hover { border-color: var(--accent); color: var(--ink); }
+
+/* Toolbar */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.search { flex: 1 1 220px; min-width: 0; position: relative; }
+.search input { width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 10px 8px 34px; }
+.search svg { position: absolute; left: 10px; top: 50%; translate: 0 -50%; width: 16px; height: 16px; color: var(--muted); pointer-events: none; }
+select.filter { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 10px; max-width: 100%; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: border-color .15s, filter .15s; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.05); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--danger); }
+.btn.danger.armed { background: var(--danger); border-color: var(--danger); color: var(--surface); }
+.btn.okbtn { color: var(--ok); }
+.btn.sm { padding: 5px 10px; font-size: 0.84rem; }
+
+/* Table */
+.tablewrap { background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow); overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th { text-align: left; padding: 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th button { all: unset; box-sizing: border-box; display: flex; gap: 4px; align-items: center; width: 100%; padding: 11px 14px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); cursor: pointer; }
+th button:hover { color: var(--ink); }
+th button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+th.num button { justify-content: flex-end; }
+th button .arrow { opacity: 0; font-size: 0.8rem; }
+th[aria-sort] button { color: var(--ink); }
+th[aria-sort] button .arrow { opacity: 1; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; transition: background .12s; }
+body.compact td { padding-block: 5px; }
+body.compact th button { padding-block: 8px; }
+body.compact table { font-size: 0.88rem; }
+tbody tr:last-child td { border-bottom: 0; }
+.tablewrap tbody tr { cursor: pointer; }
+.tablewrap tbody tr:hover td { background: var(--sunk); }
+tr.is-packed td.item { color: var(--muted); }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.boxno { font-family: var(--f-mono); font-size: 0.8rem; background: var(--sunk); border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
+.cat { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.cat::before { content: ""; width: 9px; height: 9px; border-radius: 3px; background: var(--dot, var(--c-other)); }
+.tag { font-size: 0.66rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); border: 1px dashed var(--line); border-radius: 4px; padding: 0 5px; margin-left: 6px; vertical-align: 1px; }
+.pack { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px 4px 6px; background: var(--surface); cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--muted); white-space: nowrap; transition: background .2s, color .2s; }
+.pack:hover { border-color: var(--muted); }
+.pack .tick { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--muted); display: grid; place-items: center; transition: background .2s; }
+.pack[aria-pressed="true"] { background: var(--ok-soft); border-color: transparent; color: var(--ok); }
+.pack[aria-pressed="true"] .tick { background: var(--ok); border-color: var(--ok); }
+.pack[aria-pressed="true"] .tick::after { content: ""; width: 4px; height: 8px; border: solid var(--surface); border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+tfoot td { font-weight: 600; background: var(--sunk); border-bottom: 0; }
+.empty { padding: 40px 16px; text-align: center; color: var(--muted); display: grid; gap: 12px; justify-items: center; }
+.empty svg { width: 64px; height: 64px; color: var(--kraft); }
+.empty p { margin: 0; max-width: 42ch; }
+.note { font-size: 0.8rem; color: var(--muted); margin: 0; }
+
+/* Recipients */
+.rgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; align-items: start; }
+.rcard { background: var(--surface); box-shadow: var(--shadow); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; }
+.rcard header { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent-soft); color: var(--strong); display: grid; place-items: center; font-family: var(--f-display); font-weight: 700; flex: none; }
+.rcard h3 { font-size: 1.05rem; }
+.rcard header small { display: block; color: var(--muted); font-size: 0.8rem; }
+.rstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; background: var(--sunk); border-radius: 8px; padding: 8px 10px; }
+.rstats div { display: grid; font-size: 0.72rem; color: var(--muted); }
+.rstats b { font-size: 0.95rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+.rlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.88rem; }
+.rlist li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+.rlist .dot { width: 9px; height: 9px; border-radius: 3px; background: var(--dot); align-self: center; }
+.rlist .done { color: var(--muted); text-decoration: line-through; }
+.rlist small { color: var(--muted); font-family: var(--f-mono); font-size: 0.75rem; white-space: nowrap; }
+
+/* Checklist */
+.ck-head { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.ck-head .bar { flex: 1 1 200px; height: 8px; }
+.ck-head b { font-family: var(--f-display); font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.checklist { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.group { background: var(--surface); box-shadow: var(--shadow); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; }
+.group h2 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.group h2 small { font-family: var(--f-mono); font-size: 0.76rem; color: var(--muted); font-weight: 500; }
+.group.done h2 small { color: var(--ok); }
+.group ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.group label { display: grid; grid-template-columns: 20px 1fr; gap: 10px; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.92rem; }
+.group label:hover { background: var(--sunk); }
+.group input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--ok); }
+.group input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); }
+
+/* Dialogs */
+dialog { border: 0; border-radius: 16px; padding: 0; width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; background: var(--surface); color: var(--ink); box-shadow: 0 24px 70px rgb(0 0 0 / .35); }
+dialog[open] { animation: pop .2s cubic-bezier(.2,.8,.2,1); }
+dialog::backdrop { background: rgb(20 12 8 / .5); }
+dialog.wide { width: min(680px, calc(100vw - 32px)); }
+@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+dialog form, .dlg-body { padding: 22px; display: grid; gap: 16px; }
+.dlg-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.dlg-head h2 { font-size: 1.25rem; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.field { display: grid; gap: 4px; min-width: 0; align-content: start; }
+.field.wide { grid-column: 1 / -1; }
+.field label, .field .lbl { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.field small { font-size: 0.76rem; color: var(--muted); }
+.field input:not([type="checkbox"]), .field select, .field textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; background: var(--bg); }
+.field textarea { resize: vertical; min-height: 64px; }
+.fieldset-title { grid-column: 1 / -1; font-size: 0.74rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--strong); margin-top: 4px; }
+.catpick { display: flex; flex-wrap: wrap; gap: 6px; }
+.catpick button { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 5px 11px; font-size: 0.84rem; cursor: pointer; }
+.catpick button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.check { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.check input { width: 18px; height: 18px; accent-color: var(--ok); }
+.dlg-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.dlg-actions .spacer { flex: 1; }
+.divider { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+/* Shipping label */
+.shiplabel { border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; font-size: 0.9rem; background: var(--surface); }
+.sl-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; background: var(--ink); color: var(--bg); }
+.sl-head b { font-family: var(--f-mono); font-size: 1.5rem; font-weight: 700; letter-spacing: .02em; }
+.sl-head span { font-size: 0.72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.sl-addr { display: grid; grid-template-columns: 1.3fr 1fr; border-bottom: 2px solid var(--ink); }
+.sl-addr > div { padding: 12px 16px; display: grid; gap: 2px; align-content: start; min-width: 0; }
+.sl-addr > div + div { border-left: 2px solid var(--ink); }
+.sl-k { font-size: 0.68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.sl-to { font-family: var(--f-display); font-size: 1.15rem; font-weight: 700; }
+.sl-addr p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.sl-missing { color: var(--warn); font-style: italic; }
+.sl-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 2px solid var(--ink); }
+.sl-facts div { padding: 8px 12px; display: grid; min-width: 0; }
+.sl-facts div + div { border-left: 1px solid var(--line); }
+.sl-facts b { font-family: var(--f-mono); font-size: 0.85rem; overflow-wrap: anywhere; }
+.sl-contents { padding: 10px 16px 14px; }
+.sl-contents table { font-size: 0.84rem; }
+.sl-contents td, .sl-contents th { padding: 4px 6px; border-bottom: 1px dashed var(--line); }
+.sl-contents th { font-size: 0.68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 4px 6px; }
+
+/* Packing list preview (paper is always white, like the printout) */
+.paper { max-height: min(62vh, 640px); overflow: auto; border-radius: 10px; background: var(--sunk); padding: 12px; }
+.pl-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.pl-bar label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+
+/* Printing (installed app only): only the packing list is printed */
+#printRoot { display: none; }
+@media print {
+  body > :not(#printRoot) { display: none !important; }
+  #printRoot { display: block; }
+  :root { padding: 0; }
+  body { background: #fff; }
+}
+
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 8px 8px 16px; border-radius: 10px; font-size: 0.9rem; font-weight: 500; max-width: calc(100vw - 32px); display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow-lift); z-index: 10; animation: rise .22s cubic-bezier(.2,.8,.2,1); }
+@keyframes rise { from { opacity: 0; transform: translate(-50%, 10px); } }
+.toast button { border: 0; background: transparent; color: var(--accent); font-weight: 700; cursor: pointer; padding: 6px 10px; border-radius: 6px; }
+.toast:not(:has(button:not([hidden]))) { padding-right: 16px; }
+
+@media (max-width: 820px) {
+  .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reminders, .checklist { grid-template-columns: minmax(0, 1fr); }
+  .sl-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sl-facts div:nth-child(3) { border-left: 0; }
+}
+@media (max-width: 640px) {
+  .head-actions { width: 100%; flex-wrap: nowrap; }
+  .tabs { flex: 1; flex-wrap: nowrap; min-width: 0; }
+  .tabs button { flex: 1; padding: 8px 6px; font-size: 0.88rem; white-space: nowrap; }
+  .tabs .count { margin-left: 2px; }
+  .boxgrid { grid-template-columns: minmax(0, 1fr); }
+  .fields { grid-template-columns: minmax(0, 1fr); }
+  .sl-addr { grid-template-columns: minmax(0, 1fr); }
+  .sl-addr > div + div { border-left: 0; border-top: 2px solid var(--ink); }
+  .tablewrap { background: transparent; box-shadow: none; overflow: visible; }
+  .tablewrap > table { display: block; }
+  .tablewrap > table > tbody, .tablewrap > table > tfoot { display: block; }
+  .tablewrap > table > thead { display: none; }
+  .tablewrap > table > tbody { display: grid; gap: 10px; }
+  .tablewrap > table > tbody > tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; background: var(--surface); box-shadow: var(--shadow); border-radius: var(--r); padding: 12px 14px; }
+  .tablewrap > table > tbody > tr:hover td { background: transparent; }
+  .tablewrap td { padding: 0; border: 0; }
+  td.item { grid-column: 1; font-weight: 600; }
+  td.packed { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+  td.meta-m { grid-column: 1; font-size: 0.84rem; color: var(--muted); }
+  td.box, td.cat-cell, td.qty, td.price, td.val, td.wt, td.rcpt { display: none; }
+  .tablewrap tfoot tr { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 12px 14px; background: var(--sunk); border-radius: var(--r); margin-top: 10px; }
+  .tablewrap tfoot td { background: transparent; padding: 0; }
+  .tablewrap tfoot td:empty { display: none; }
+}
+@media (min-width: 641px) { td.meta-m { display: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <div>
+      <p class="eyebrow">Balikbayan box</p>
+      <h1>Packing inventory</h1>
+      <p class="sub" id="heroSub">Track every item, box by box.</p>
+    </div>
+    <div class="head-actions">
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button id="tabbtn-inventory" role="tab" data-tab="inventory" aria-selected="true">Inventory</button>
+        <button id="tabbtn-recipients" role="tab" data-tab="recipients" aria-selected="false">Recipients <span class="count" id="rcCount">0</span></button>
+        <button id="tabbtn-checklist" role="tab" data-tab="checklist" aria-selected="false">Checklist <span class="count" id="ckCount">0/0</span></button>
+      </nav>
+      <button class="iconbtn" id="settingsBtn" type="button" aria-label="Settings" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="summary" aria-label="Summary">
+    <div class="stat"><span>Total weight</span><b id="sWeight">0 kg</b></div>
+    <div class="stat"><span>Items</span><b id="sItems">0</b></div>
+    <div class="stat"><span>Est. value</span><b id="sValue">$0</b></div>
+    <div class="stat"><span>Packed</span><b id="sPacked">0%</b><div class="bar"><i id="sBar"></i></div></div>
+  </section>
+
+  <ul class="reminders" aria-label="Reminders">
+    <li>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+      <strong>Check carrier restrictions</strong>
+      <span>Prohibited items, weight and size limits, and duty-free value caps differ by carrier.</span>
+    </li>
+    <li>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+      <strong>Label each box</strong>
+      <span>Box number, sender, recipient name, full address and phone on two sides.</span>
+    </li>
+    <li>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M14 3v5h5"/></svg>
+      <strong>Save inventory and receipt</strong>
+      <span>Keep both until delivery. You need them for tracking and claims.</span>
+    </li>
+  </ul>
+
+  <main>
+    <section id="tab-inventory" role="tabpanel" aria-labelledby="tabbtn-inventory" style="display:grid;gap:16px">
+      <div class="sec-head">
+        <h2>Boxes</h2>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <p>Select a box to see its items. Pencil: details and label. List icon: packing list.</p>
+          <button class="btn sm" id="allListsBtn" type="button">Packing lists</button>
+        </div>
+      </div>
+      <div class="boxgrid" id="boxGrid" role="group" aria-label="Boxes"></div>
+
+      <div class="toolbar">
+        <label class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="Search items or recipients" aria-label="Search items or recipients">
+        </label>
+        <select class="filter" id="catFilter" aria-label="Filter by category"></select>
+        <select class="filter" id="rcptFilter" aria-label="Filter by recipient"></select>
+        <button class="btn okbtn" id="packBoxBtn" type="button" hidden>Mark box packed</button>
+        <button class="btn" id="densityBtn" type="button" aria-pressed="false">Compact</button>
+        <button class="btn" id="copyBtn" type="button">Copy list</button>
+        <button class="btn primary" id="addBtn" type="button">+ Add item</button>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="box"><button type="button">Box <span class="arrow">↑</span></button></th>
+              <th data-sort="category"><button type="button">Category <span class="arrow">↑</span></button></th>
+              <th data-sort="item"><button type="button">Item <span class="arrow">↑</span></button></th>
+              <th data-sort="qty" class="num"><button type="button">Qty <span class="arrow">↑</span></button></th>
+              <th data-sort="price" class="num"><button type="button">Unit price <span class="arrow">↑</span></button></th>
+              <th data-sort="value" class="num"><button type="button">Total price <span class="arrow">↑</span></button></th>
+              <th data-sort="weight" class="num"><button type="button">Weight <span class="arrow">↑</span></button></th>
+              <th data-sort="recipient"><button type="button">Recipient <span class="arrow">↑</span></button></th>
+              <th data-sort="packed"><button type="button">Status <span class="arrow">↑</span></button></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+          <tfoot id="foot"></tfoot>
+        </table>
+        <div class="empty" id="empty" hidden>
+          <svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M8 22l24-10 24 10v26L32 58 8 48z" fill="currentColor"/><path d="M8 22l24 10 24-10M32 32v26" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round"/><path d="M20 17l24 10v8" stroke="var(--accent)" stroke-width="4"/></svg>
+          <p id="emptyText">No items yet. Add the first thing going into Box 1.</p>
+          <button class="btn primary" type="button" id="emptyAdd">+ Add item</button>
+        </div>
+      </div>
+      <p class="note" id="storeNote"></p>
+    </section>
+
+    <section id="tab-recipients" role="tabpanel" aria-labelledby="tabbtn-recipients" hidden style="display:grid;gap:16px">
+      <div class="sec-head">
+        <h2>Who gets what</h2>
+        <p>Every item grouped by recipient, across all boxes.</p>
+      </div>
+      <div class="rgrid" id="rgrid"></div>
+    </section>
+
+    <section id="tab-checklist" role="tabpanel" aria-labelledby="tabbtn-checklist" hidden style="display:grid;gap:16px">
+      <div class="ck-head">
+        <b id="ckPct">0% done</b>
+        <div class="bar"><i id="ckBar"></i></div>
+        <button class="btn ghost" id="ckReset" type="button">Reset</button>
+      </div>
+      <div class="checklist" id="checklist"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Item editor -->
+<dialog id="editor" aria-labelledby="edTitle">
+  <form id="edForm" method="dialog">
+    <div class="dlg-head"><h2 id="edTitle">Add item</h2><span class="note" id="edHint"></span></div>
+    <div class="fields">
+      <div class="field wide"><label for="fItem">Item</label><input id="fItem" type="text" required maxlength="120" placeholder="e.g. Corned beef, 12 oz cans" autocomplete="off"></div>
+      <div class="field wide"><span class="lbl" id="catLbl">Category</span><div class="catpick" id="fCat" role="group" aria-labelledby="catLbl"></div></div>
+      <div class="field"><label for="fBox">Box number</label><input id="fBox" type="number" min="1" step="1" required></div>
+      <div class="field"><label for="fQty">Quantity</label><input id="fQty" type="number" min="1" step="1" required></div>
+      <div class="field"><label for="fVal" id="fValLbl">Unit price</label><input id="fVal" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"><small id="fTotal">Total: 0</small></div>
+      <div class="field"><label for="fWt" id="fWtLbl">Weight (kg)</label><input id="fWt" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"><small>All pieces in this line together</small></div>
+      <div class="field wide"><label for="fRcpt">Recipient</label><input id="fRcpt" type="text" list="rcptList" maxlength="80" placeholder="e.g. Lola Nena"><datalist id="rcptList"></datalist></div>
+      <div class="field wide"><label class="check" for="fPacked"><input id="fPacked" type="checkbox"> Already packed</label></div>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn danger" type="button" id="delBtn">Delete</button>
+      <button class="btn ghost" type="button" id="dupBtn">Duplicate</button>
+      <span class="spacer"></span>
+      <button class="btn" type="button" id="cancelBtn">Cancel</button>
+      <button class="btn" type="button" id="saveAnotherBtn">Save &amp; add another</button>
+      <button class="btn primary" type="submit" id="saveBtn">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Box details -->
+<dialog id="boxDlg" aria-labelledby="bxTitle">
+  <form id="bxForm" method="dialog">
+    <div class="dlg-head"><h2 id="bxTitle">Box details</h2></div>
+    <div class="fields">
+      <div class="field"><label for="bSize">Box size</label><select id="bSize"></select></div>
+      <div class="field"><label for="bStatus">Status</label><select id="bStatus"></select></div>
+      <div class="field"><label for="bCarrier">Carrier</label><input id="bCarrier" type="text" list="carrierList" maxlength="60" placeholder="e.g. LBC, Forex Cargo"><datalist id="carrierList"><option value="LBC"><option value="Forex Cargo"><option value="Johnny Air Cargo"><option value="Atlas Shippers"><option value="Pinoy Express"></datalist></div>
+      <div class="field"><label for="bShip">Ship date</label><input id="bShip" type="date"></div>
+      <div class="field wide"><label for="bTrack">Tracking or receipt number</label><input id="bTrack" type="text" maxlength="60" autocomplete="off"></div>
+      <p class="fieldset-title">Deliver to</p>
+      <div class="field"><label for="bTo">Recipient name</label><input id="bTo" type="text" list="rcptList" maxlength="80"></div>
+      <div class="field"><label for="bToPhone">Phone</label><input id="bToPhone" type="tel" maxlength="30" autocomplete="off"></div>
+      <div class="field wide"><label for="bToAddr">Address</label><textarea id="bToAddr" maxlength="300" placeholder="House no., street, barangay, city, province, ZIP"></textarea></div>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn" type="button" id="bxLabel">View label</button>
+      <span class="spacer"></span>
+      <button class="btn" type="button" id="bxCancel">Cancel</button>
+      <button class="btn primary" type="submit">Save box</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Shipping label -->
+<dialog id="labelDlg" class="wide" aria-labelledby="lbTitle">
+  <div class="dlg-body">
+    <div class="dlg-head"><h2 id="lbTitle">Box label</h2><span class="note">Copy it into a document to print, or write it on the box.</span></div>
+    <div id="labelHost"></div>
+    <div class="dlg-actions">
+      <button class="btn" type="button" id="lbEdit">Edit box details</button>
+      <button class="btn" type="button" id="lbList">Packing list</button>
+      <span class="spacer"></span>
+      <button class="btn" type="button" id="lbClose">Close</button>
+      <button class="btn primary" type="button" id="lbCopy">Copy label text</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Packing list -->
+<dialog id="listDlg" class="wide" aria-labelledby="plTitle">
+  <div class="dlg-body">
+    <div class="dlg-head"><h2 id="plTitle">Packing list</h2></div>
+    <div class="pl-bar">
+      <label for="plScope">Show</label>
+      <select class="filter" id="plScope"></select>
+      <span class="note" id="plHint">Download it, open the file, then press Ctrl+P (⌘P on Mac) to print. Each box prints on its own page.</span>
+    </div>
+    <div class="paper" id="plPaper"></div>
+    <div class="dlg-actions">
+      <button class="btn" type="button" id="plClose">Close</button>
+      <span class="spacer"></span>
+      <button class="btn" type="button" id="plCopy">Copy as text</button>
+      <button class="btn" type="button" id="plPrint" hidden>Print</button>
+      <button class="btn primary" type="button" id="plDownload">Download for printing</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Settings -->
+<dialog id="settings" aria-labelledby="setTitle">
+  <form id="setForm" method="dialog">
+    <div class="dlg-head"><h2 id="setTitle">Settings</h2></div>
+    <div class="fields">
+      <div class="field"><label for="sCur">Currency</label><select id="sCur"></select></div>
+      <div class="field"><label for="sLimit">Value limit per box</label><input id="sLimit" type="number" min="0" step="1" inputmode="decimal" placeholder="No limit"><small>Boxes above this get a warning.</small></div>
+      <div class="field"><label for="sWUnit">Weight unit</label><select id="sWUnit"><option value="kg">Kilograms (kg)</option><option value="lb">Pounds (lb)</option></select></div>
+      <div class="field"><label for="sWLimit">Weight limit per box</label><input id="sWLimit" type="number" min="0" step="0.1" inputmode="decimal" placeholder="No limit"><small>Check your carrier's limit for your box size.</small></div>
+      <p class="fieldset-title">Sender, for labels</p>
+      <div class="field"><label for="sName">Your name</label><input id="sName" type="text" maxlength="80"></div>
+      <div class="field"><label for="sPhone">Your phone</label><input id="sPhone" type="tel" maxlength="30"></div>
+      <div class="field wide"><label for="sAddr">Your address</label><textarea id="sAddr" maxlength="300"></textarea></div>
+    </div>
+    <hr class="divider">
+    <div class="field" id="backupField" hidden>
+      <span class="lbl">Backup</span>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" type="button" id="bkSave">Save backup file</button>
+        <label class="btn" for="bkFile">Restore from backup</label>
+        <input type="file" id="bkFile" accept="application/json,.json" hidden>
+      </div>
+      <small>Your list is stored on this device. Save a backup before clearing browser data or changing phones. Restoring replaces the current list.</small>
+    </div>
+    <div class="field">
+      <span class="lbl">Example items</span>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn danger" type="button" id="clearEx">Remove example items</button>
+        <small id="exCount"></small>
+      </div>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn" type="button" id="setCancel">Cancel</button>
+      <button class="btn primary" type="submit">Save settings</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="printRoot"></div>
+<div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button type="button" id="toastAct" hidden>Undo</button></div>
+
+<script>
+(() => {
+  const CATS = [
+    { id: "clothing", name: "Clothing" },
+    { id: "food", name: "Food" },
+    { id: "toiletries", name: "Toiletries" },
+    { id: "household", name: "Household" },
+    { id: "school", name: "School supplies" },
+    { id: "gifts", name: "Gifts" },
+    { id: "other", name: "Other" },
+  ];
+  const catName = id => (CATS.find(c => c.id === id) || CATS[CATS.length - 1]).name;
+  const CURRENCIES = ["USD", "PHP", "CAD", "AUD", "GBP", "EUR", "AED", "SAR", "QAR", "KWD", "SGD", "HKD", "JPY", "NZD"];
+  const STATUSES = [["packing", "Packing"], ["sealed", "Sealed"], ["shipped", "Shipped"], ["delivered", "Delivered"]];
+  const statusName = s => (STATUSES.find(x => x[0] === s) || STATUSES[0])[1];
+  const SIZES = ["", "Mini", "Medium", "Regular", "Large", "Jumbo", "Custom"];
+
+  const CHECKLIST = [
+    { title: "Before packing", items: [
+      ["b1", "Get a sturdy box in your carrier's size (regular or jumbo)"],
+      ["b2", "Gather packing tape, zip bags and bubble wrap"],
+      ["b3", "Group items by recipient"],
+    ]},
+    { title: "Packing", items: [
+      ["p1", "Tape the bottom seams twice in an H pattern"],
+      ["p2", "Heavy items at the bottom, fragile items in the middle"],
+      ["p3", "Seal liquids and toiletries in zip bags"],
+      ["p4", "Keep food sealed in original packaging"],
+      ["p5", "Fill gaps with clothes or towels so nothing shifts"],
+    ]},
+    { title: "Sealing & drop-off", items: [
+      ["s1", "Mark every item as packed in the inventory"],
+      ["s2", "Photograph the contents before sealing"],
+      ["s3", "Seal the top with an H pattern of tape"],
+      ["s4", "Weigh the box against your carrier's limit"],
+      ["s5", "Tape a copy of the inventory inside the lid"],
+    ]},
+  ];
+
+  const $ = id => document.getElementById(id);
+  // Outside a Claude artifact (installed app, plain browser) there is no claude runtime:
+  // data stays in browser storage, and printing and file saves use the browser directly.
+  const STANDALONE = !(window.claude && typeof window.claude.use === "function");
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
+
+  const ICON_LIST = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M9 5H6v16h12V5h-3"/><path d="M9 11h6M9 15h6"/></svg>';
+
+  let items = [];
+  let checks = {};
+  let boxMeta = {};
+  const DEFAULTS = { currency: "USD", limit: 0, wUnit: "kg", wLimit: 0, senderName: "", senderPhone: "", senderAddr: "" };
+  let settings = { ...DEFAULTS };
+  const ui = { box: "all", cat: "all", rcpt: "all", q: "", sort: "box", dir: 1 };
+  let editingId = null, draftCat = "clothing", editingBox = null, labelBox = null;
+
+  const money = n => {
+    try { return new Intl.NumberFormat("en-US", { style: "currency", currency: settings.currency, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(n) || 0); }
+    catch { return (Number(n) || 0).toFixed(2); }
+  };
+  // Unit price is stored as `price`; older rows only have a line total in `value`.
+  const unitPrice = x => x.price != null ? (Number(x.price) || 0) : (x.qty ? (Number(x.value) || 0) / x.qty : 0);
+  const lineTotal = x => Math.round(unitPrice(x) * (x.qty || 0) * 100) / 100;
+  const sumVal = list => list.reduce((s, x) => s + lineTotal(x), 0);
+  const sumQty = list => list.reduce((s, x) => s + (x.qty || 0), 0);
+  const sumWt = list => Math.round(list.reduce((s, x) => s + (Number(x.weight) || 0), 0) * 100) / 100;
+  const wt = n => `${(Math.round((Number(n) || 0) * 100) / 100).toLocaleString("en-US")} ${settings.wUnit}`;
+  const fmtDate = d => { if (!d) return ""; const t = new Date(d + "T00:00:00"); return isNaN(t) ? d : t.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }); };
+  const boxList = () => [...new Set(items.map(x => x.box))].sort((a, b) => a - b);
+
+  // ---------- storage: artifact db when available, browser storage otherwise ----------
+  const LS = { items: "bb-items", checks: "bb-checks", settings: "bb-settings", boxes: "bb-boxes" };
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  const newId = () => "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  const store = {
+    db: null,
+    async saveItem(id, data) {
+      id = id || newId();
+      if (this.db) { await this.db.collection("items").doc(id).set(data); return id; }
+      const i = items.findIndex(x => x.id === id);
+      if (i >= 0) items[i] = { id, ...data }; else items.push({ id, ...data });
+      lsSet(LS.items, items); renderAll(); return id;
+    },
+    async deleteItem(id) {
+      if (this.db) return this.db.collection("items").doc(id).delete();
+      items = items.filter(x => x.id !== id); lsSet(LS.items, items); renderAll();
+    },
+    async saveBox(n, data) {
+      if (this.db) return this.db.collection("boxes").doc("box-" + n).set(data);
+      boxMeta = { ...boxMeta, [n]: data }; lsSet(LS.boxes, boxMeta); renderAll();
+    },
+    async saveChecks(next) {
+      if (this.db) return this.db.doc("checklist/main").set({ done: next });
+      checks = next; lsSet(LS.checks, checks); renderChecklist();
+    },
+    async saveSettings(next) {
+      if (this.db) return this.db.doc("settings/main").set(next);
+      settings = next; lsSet(LS.settings, settings); renderAll();
+    },
+  };
+  const strip = x => { const { id, ...data } = x; return data; };
+
+  function fail(e) {
+    const code = e && e.code;
+    if (code === "invalid_argument") toast("You can view this list, but only people with edit access can change it.");
+    else if (code === "quota_exceeded") toast("The list is full. Delete some items, then try again.");
+    else toast("Couldn't save. Check your connection and try again.");
+  }
+
+  // ---------- inventory ----------
+  function viewItems() {
+    const q = ui.q.trim().toLowerCase();
+    const keyed = { box: x => x.box, category: x => catName(x.category), item: x => x.item.toLowerCase(), qty: x => x.qty, price: unitPrice, value: lineTotal, weight: x => Number(x.weight) || 0, recipient: x => (x.recipient || "~").toLowerCase(), packed: x => x.packed ? 1 : 0 };
+    const k = keyed[ui.sort];
+    return items
+      .filter(x => (ui.box === "all" || x.box === ui.box)
+        && (ui.cat === "all" || x.category === ui.cat)
+        && (ui.rcpt === "all" || (x.recipient || "") === ui.rcpt)
+        && (!q || x.item.toLowerCase().includes(q) || (x.recipient || "").toLowerCase().includes(q)))
+      .sort((a, b) => {
+        const va = k(a), vb = k(b);
+        const c = va < vb ? -1 : va > vb ? 1 : 0;
+        return (c * ui.dir) || (a.box - b.box) || a.item.localeCompare(b.item);
+      });
+  }
+
+  function boxCard(key, name, list) {
+    const meta = key === "all" ? {} : (boxMeta[key] || {});
+    const c = el("div", "boxcard" + (ui.box === key ? " sel" : ""));
+    const hit = el("button", "bc-hit"); hit.type = "button";
+    hit.setAttribute("aria-pressed", String(ui.box === key));
+    hit.setAttribute("aria-label", key === "all" ? "Show items in all boxes" : `Show items in ${name}`);
+    hit.addEventListener("click", () => { ui.box = ui.box === key && key !== "all" ? "all" : key; render(); });
+    c.append(hit);
+
+    const top = el("div", "bc-top");
+    top.append(el("span", "bc-name", name));
+    if (key !== "all") {
+      const st = meta.status || "packing";
+      top.append(el("span", "status s-" + st, statusName(st)));
+      const ed = el("button", "bc-edit"); ed.type = "button"; ed.innerHTML = ICON_EDIT;
+      ed.setAttribute("aria-label", `Edit ${name} details`); ed.title = "Box details and label";
+      ed.addEventListener("click", e => { e.stopPropagation(); openBox(key); });
+      const pl = el("button", "bc-edit"); pl.type = "button"; pl.innerHTML = ICON_LIST;
+      pl.setAttribute("aria-label", `${name} packing list`); pl.title = "Print-friendly packing list";
+      pl.addEventListener("click", e => { e.stopPropagation(); openList(key); });
+      top.append(pl, ed);
+    }
+    c.append(top);
+
+    const subBits = key === "all" ? [`${boxList().length} boxes`] : [meta.size, meta.carrier, meta.shipDate ? "Ships " + fmtDate(meta.shipDate) : "", meta.to ? "To " + meta.to : ""].filter(Boolean);
+    c.append(el("div", "bc-sub", subBits.join(" · ") || "Add size, carrier and address"));
+
+    // category mix by piece count
+    const cb = el("div", "catbar");
+    const byCat = {};
+    list.forEach(x => { byCat[x.category] = (byCat[x.category] || 0) + (x.qty || 0); });
+    const parts = CATS.filter(cat => byCat[cat.id]).map(cat => `${cat.name} ${byCat[cat.id]}`);
+    cb.setAttribute("role", "img"); cb.setAttribute("aria-label", "Category mix: " + (parts.join(", ") || "empty"));
+    CATS.forEach(cat => { if (!byCat[cat.id]) return; const s = el("span"); s.style.setProperty("--dot", `var(--c-${cat.id})`); s.style.flexGrow = byCat[cat.id]; s.title = `${cat.name}: ${byCat[cat.id]} pcs`; cb.append(s); });
+    c.append(cb);
+
+    const p = list.filter(x => x.packed).length;
+    const v = sumVal(list), w = sumWt(list);
+    const r1 = el("div", "bc-row");
+    const a = el("span"); a.append(el("b", null, `${p}/${list.length}`), " packed");
+    const b = el("span"); b.append(el("b", null, money(v)), ` · ${sumQty(list)} pcs`);
+    r1.append(a, b); c.append(r1);
+
+    // weight gauge
+    const lim = key === "all" ? 0 : settings.wLimit;
+    const r2 = el("div", "bc-row");
+    const wl = el("span"); wl.append("Weight ");
+    const wb = el("span"); wb.append(el("b", null, wt(w)), lim ? ` / ${wt(lim)}` : "");
+    r2.append(wl, wb); c.append(r2);
+    if (lim) {
+      const ratio = w / lim;
+      const g = el("div", "bar" + (ratio > 1 ? " overbar" : ratio > 0.9 ? " warnbar" : ""));
+      const gi = el("i"); gi.style.width = Math.min(100, ratio * 100) + "%"; g.append(gi);
+      g.setAttribute("role", "img"); g.setAttribute("aria-label", `${Math.round(ratio * 100)}% of weight limit`);
+      c.append(g);
+    }
+
+    if (key !== "all") {
+      const warns = [];
+      if (settings.limit > 0 && v > settings.limit) warns.push(`Over ${money(settings.limit)} value`);
+      if (settings.wLimit > 0 && w > settings.wLimit) warns.push(`Over ${wt(settings.wLimit)}`);
+      if (warns.length) c.append(el("span", "pill warn", warns.join(" · ")));
+      else if (list.length && p === list.length && (meta.status || "packing") === "packing") c.append(el("span", "pill ok", "Ready to seal"));
+    }
+    return c;
+  }
+
+  function render() {
+    const boxes = boxList();
+    if (ui.box !== "all" && !boxes.includes(ui.box)) ui.box = "all";
+    const recipients = [...new Set(items.map(x => x.recipient).filter(Boolean))].sort();
+    if (ui.rcpt !== "all" && !recipients.includes(ui.rcpt)) ui.rcpt = "all";
+
+    const packed = items.filter(x => x.packed).length;
+    const pct = items.length ? Math.round(packed / items.length * 100) : 0;
+    $("sWeight").textContent = wt(sumWt(items));
+    $("sItems").textContent = sumQty(items);
+    $("sValue").textContent = money(sumVal(items));
+    $("sPacked").textContent = pct + "%";
+    $("sBar").style.width = pct + "%";
+    const shipped = boxes.filter(n => ["shipped", "delivered"].includes((boxMeta[n] || {}).status)).length;
+    $("heroSub").textContent = items.length
+      ? `${boxes.length} ${boxes.length === 1 ? "box" : "boxes"} for ${recipients.length} ${recipients.length === 1 ? "recipient" : "recipients"} · ${packed} of ${items.length} lines packed${shipped ? ` · ${shipped} shipped` : ""}`
+      : "Track every item, box by box.";
+    $("rcCount").textContent = recipients.length;
+
+    const grid = $("boxGrid");
+    grid.replaceChildren();
+    if (boxes.length > 1) grid.append(boxCard("all", "All boxes", items));
+    boxes.forEach(n => grid.append(boxCard(n, "Box " + n, items.filter(x => x.box === n))));
+    const add = el("button", "boxcard add"); add.type = "button";
+    const next = boxes.length ? Math.max(...boxes) + 1 : 1;
+    add.textContent = "+ Start Box " + next;
+    add.addEventListener("click", () => openEditor(null, { box: next }));
+    grid.append(add);
+
+    const rf = $("rcptFilter");
+    rf.replaceChildren(...[["all", "All recipients"], ...recipients.map(r => [r, r])].map(([v, t]) => { const o = el("option", null, t); o.value = v; return o; }));
+    rf.value = ui.rcpt;
+    $("catFilter").value = ui.cat;
+    const inBox = ui.box === "all" ? [] : items.filter(x => x.box === ui.box);
+    const pb = $("packBoxBtn");
+    pb.hidden = !(inBox.length && inBox.some(x => !x.packed));
+    pb.textContent = `Mark Box ${ui.box} packed`;
+
+    document.querySelectorAll("th[data-sort]").forEach(th => {
+      const on = th.dataset.sort === ui.sort;
+      if (on) th.setAttribute("aria-sort", ui.dir > 0 ? "ascending" : "descending"); else th.removeAttribute("aria-sort");
+      th.querySelector(".arrow").textContent = on && ui.dir < 0 ? "↓" : "↑";
+    });
+
+    const view = viewItems();
+    const tbody = $("rows");
+    tbody.replaceChildren();
+    view.forEach(x => {
+      const tr = el("tr"); if (x.packed) tr.className = "is-packed";
+      tr.tabIndex = 0; tr.setAttribute("aria-label", `Edit ${x.item}`);
+      const td = (cls, content) => { const c = el("td", cls); if (typeof content === "string") c.textContent = content; else if (content) c.append(content); tr.append(c); return c; };
+      td("box", el("span", "boxno", "#" + x.box));
+      const cat = el("span", "cat", catName(x.category)); cat.style.setProperty("--dot", `var(--c-${x.category})`);
+      td("cat-cell", cat);
+      const it = td("item", x.item);
+      if (x.example) it.append(el("span", "tag", "Example"));
+      td("meta-m", `Box ${x.box} · ${x.qty} × ${money(unitPrice(x))} = ${money(lineTotal(x))}${x.weight ? " · " + wt(x.weight) : ""}${x.recipient ? " · " + x.recipient : ""}`);
+      td("num qty", String(x.qty));
+      td("num price", money(unitPrice(x)));
+      td("num val", money(lineTotal(x)));
+      td("num wt", x.weight ? wt(x.weight) : "—");
+      td("rcpt", x.recipient || "—");
+      const btn = el("button", "pack"); btn.type = "button";
+      btn.setAttribute("aria-pressed", String(!!x.packed));
+      btn.append(el("span", "tick"), x.packed ? "Packed" : "To pack");
+      btn.addEventListener("click", e => { e.stopPropagation(); store.saveItem(x.id, { ...strip(x), packed: !x.packed }).catch(fail); });
+      td("packed", btn);
+      tr.addEventListener("click", () => openEditor(x));
+      tr.addEventListener("keydown", e => { if (e.key === "Enter" && e.target === tr) openEditor(x); });
+      tbody.append(tr);
+    });
+
+    const foot = $("foot");
+    foot.replaceChildren();
+    if (view.length) {
+      const tr = el("tr");
+      const vp = view.filter(x => x.packed).length;
+      [["", ""], ["", ""], ["", `Total · ${view.length} ${view.length === 1 ? "line" : "lines"}`], ["num", sumQty(view) + " pcs"], ["num", ""], ["num", money(sumVal(view))], ["num", wt(sumWt(view))], ["", ""], ["", `${vp}/${view.length} packed`]]
+        .forEach(([cls, t]) => tr.append(el("td", cls, t)));
+      foot.append(tr);
+    }
+    $("empty").hidden = view.length > 0;
+    $("emptyText").textContent = items.length ? "Nothing matches these filters." : "No items yet. Add the first thing going into Box 1.";
+    $("emptyAdd").hidden = items.length > 0;
+
+    $("rcptList").replaceChildren(...recipients.map(r => { const o = el("option"); o.value = r; return o; }));
+    $("fValLbl").textContent = `Unit price (${settings.currency})`;
+    $("fWtLbl").textContent = `Weight (${settings.wUnit})`;
+  }
+
+  // ---------- recipients ----------
+  function renderRecipients() {
+    const host = $("rgrid");
+    host.replaceChildren();
+    const groups = {};
+    items.forEach(x => { const k = x.recipient || ""; (groups[k] = groups[k] || []).push(x); });
+    const names = Object.keys(groups).sort((a, b) => (a === "") - (b === "") || a.localeCompare(b));
+    if (!names.length) { host.append(el("p", "note", "Add items with a recipient to see who gets what.")); return; }
+    names.forEach(name => {
+      const list = groups[name].sort((a, b) => (a.box - b.box) || a.item.localeCompare(b.item));
+      const card = el("article", "rcard");
+      const h = el("header");
+      const initials = name ? name.split(/\s+/).map(s => s[0]).slice(0, 2).join("").toUpperCase() : "?";
+      const boxes = [...new Set(list.map(x => x.box))].sort((a, b) => a - b);
+      const t = el("div"); t.append(el("h3", null, name || "No recipient yet"), el("small", null, `In ${boxes.map(b => "Box " + b).join(", ")}`));
+      h.append(el("div", "avatar", initials), t);
+      const st = el("div", "rstats");
+      const stat = (label, val) => { const d = el("div"); d.append(label, el("b", null, val)); return d; };
+      st.append(stat("Pieces", String(sumQty(list))), stat("Value", money(sumVal(list))), stat("Weight", wt(sumWt(list))));
+      const ul = el("ul", "rlist");
+      list.forEach(x => {
+        const li = el("li");
+        const d = el("span", "dot"); d.style.setProperty("--dot", `var(--c-${x.category})`); d.title = catName(x.category);
+        li.append(d, el("span", x.packed ? "done" : "", `${x.item} ×${x.qty}`), el("small", null, `#${x.box}`));
+        ul.append(li);
+      });
+      card.append(h, st, ul);
+      if (name) {
+        const go = el("button", "btn sm", "Show in inventory"); go.type = "button"; go.style.justifySelf = "start";
+        go.addEventListener("click", () => { ui.rcpt = name; ui.box = "all"; showTab("inventory"); render(); });
+        card.append(go);
+      }
+      host.append(card);
+    });
+  }
+
+  // ---------- checklist ----------
+  function renderChecklist() {
+    const host = $("checklist");
+    host.replaceChildren();
+    let done = 0, total = 0;
+    CHECKLIST.forEach(g => {
+      const n = g.items.filter(([id]) => checks[id]).length;
+      const sec = el("section", "group" + (n === g.items.length ? " done" : ""));
+      const h = el("h2", null, g.title); h.append(el("small", null, `${n}/${g.items.length}`));
+      const ol = el("ol");
+      g.items.forEach(([id, text]) => {
+        total++; if (checks[id]) done++;
+        const li = el("li"), lab = el("label");
+        const cb = el("input"); cb.type = "checkbox"; cb.id = "ck-" + id; cb.checked = !!checks[id];
+        cb.addEventListener("change", () => store.saveChecks({ ...checks, [id]: cb.checked }).catch(e => { cb.checked = !cb.checked; fail(e); }));
+        lab.append(cb, el("span", null, text)); li.append(lab); ol.append(li);
+      });
+      sec.append(h, ol); host.append(sec);
+    });
+    const pct = total ? Math.round(done / total * 100) : 0;
+    $("ckCount").textContent = `${done}/${total}`;
+    $("ckPct").textContent = `${pct}% done`;
+    $("ckBar").style.width = pct + "%";
+  }
+
+  function renderAll() {
+    render(); renderRecipients();
+    if (labelBox != null && $("labelDlg").open) renderLabel(labelBox);
+    if ($("listDlg").open) renderList();
+  }
+
+  // ---------- item editor ----------
+  const dlg = $("editor");
+  function renderCatPick() {
+    $("fCat").replaceChildren(...CATS.map(c => {
+      const b = el("button"); b.type = "button";
+      b.setAttribute("aria-pressed", String(draftCat === c.id));
+      const s = el("span", "cat", c.name); s.style.setProperty("--dot", `var(--c-${c.id})`); b.append(s);
+      b.addEventListener("click", () => { draftCat = c.id; renderCatPick(); });
+      return b;
+    }));
+  }
+  function updateTotal() {
+    const q = Math.max(1, parseInt($("fQty").value, 10) || 1);
+    const p = Math.max(0, parseFloat($("fVal").value) || 0);
+    $("fTotal").textContent = `Total: ${q} × ${money(p)} = ${money(q * p)}`;
+  }
+  $("fQty").addEventListener("input", updateTotal);
+  $("fVal").addEventListener("input", updateTotal);
+
+  function openEditor(x, preset = {}) {
+    editingId = x ? x.id : null;
+    const src = x || preset;
+    $("edTitle").textContent = x ? "Edit item" : "Add item";
+    const lastBox = ui.box !== "all" ? ui.box : (items.length ? Math.max(...items.map(i => i.box)) : 1);
+    $("fBox").value = src.box ?? lastBox;
+    draftCat = src.category || (ui.cat !== "all" ? ui.cat : "clothing");
+    renderCatPick();
+    $("fItem").value = src.item || "";
+    $("fQty").value = src.qty || 1;
+    const up = x ? unitPrice(x) : (src.price || 0);
+    $("fVal").value = up ? Math.round(up * 100) / 100 : "";
+    updateTotal();
+    $("fWt").value = src.weight ? src.weight : "";
+    $("fRcpt").value = src.recipient ?? (ui.rcpt !== "all" ? ui.rcpt : "");
+    $("fPacked").checked = !!src.packed;
+    $("edHint").textContent = x && x.example ? "Example item" : "";
+    const del = $("delBtn"); del.hidden = !x; del.classList.remove("armed"); del.textContent = "Delete";
+    $("dupBtn").hidden = !x;
+    $("saveAnotherBtn").hidden = !!x;
+    if (!dlg.open) dlg.showModal();
+    $("fItem").focus();
+  }
+
+  function readForm() {
+    const qty = Math.max(1, parseInt($("fQty").value, 10) || 1);
+    const price = Math.max(0, Math.round((parseFloat($("fVal").value) || 0) * 100) / 100);
+    return {
+      box: Math.max(1, parseInt($("fBox").value, 10) || 1),
+      category: draftCat,
+      item: $("fItem").value.trim(),
+      qty, price,
+      value: Math.round(price * qty * 100) / 100,
+      weight: Math.max(0, Math.round((parseFloat($("fWt").value) || 0) * 100) / 100),
+      recipient: $("fRcpt").value.trim(),
+      packed: $("fPacked").checked,
+      example: false,
+    };
+  }
+  function save(again) {
+    const data = readForm();
+    if (!data.item) { $("fItem").focus(); toast("Give the item a name first."); return; }
+    const wasEdit = !!editingId;
+    store.saveItem(editingId, data).then(() => toast(wasEdit ? "Item updated" : `Added to Box ${data.box}`)).catch(fail);
+    if (again) openEditor(null, { box: data.box, category: data.category, recipient: data.recipient });
+    else dlg.close();
+  }
+  $("edForm").addEventListener("submit", e => { e.preventDefault(); save(false); });
+  $("saveAnotherBtn").addEventListener("click", () => save(true));
+  $("cancelBtn").addEventListener("click", () => dlg.close());
+  $("dupBtn").addEventListener("click", () => { const d = readForm(); openEditor(null, { ...d, item: d.item + " (copy)", packed: false }); });
+  $("delBtn").addEventListener("click", () => {
+    const b = $("delBtn");
+    if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Confirm delete"; return; }
+    const gone = items.find(x => x.id === editingId);
+    dlg.close();
+    if (!gone) return;
+    store.deleteItem(gone.id).then(() => toast(`Deleted “${gone.item}”`, "Undo", () => store.saveItem(gone.id, strip(gone)).catch(fail))).catch(fail);
+  });
+
+  // ---------- box details ----------
+  const bdlg = $("boxDlg");
+  $("bSize").replaceChildren(...SIZES.map(s => { const o = el("option", null, s || "Not set"); o.value = s; return o; }));
+  $("bStatus").replaceChildren(...STATUSES.map(([v, t]) => { const o = el("option", null, t); o.value = v; return o; }));
+  function guessRecipient(n) {
+    const counts = {};
+    items.filter(x => x.box === n && x.recipient).forEach(x => { counts[x.recipient] = (counts[x.recipient] || 0) + 1; });
+    return Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0] || "";
+  }
+  function openBox(n) {
+    editingBox = n;
+    const m = boxMeta[n] || {};
+    $("bxTitle").textContent = `Box ${n} details`;
+    $("bSize").value = m.size || "";
+    $("bStatus").value = m.status || "packing";
+    $("bCarrier").value = m.carrier || "";
+    $("bShip").value = m.shipDate || "";
+    $("bTrack").value = m.tracking || "";
+    $("bTo").value = m.to ?? guessRecipient(n);
+    $("bToPhone").value = m.toPhone || "";
+    $("bToAddr").value = m.toAddr || "";
+    if ($("labelDlg").open) $("labelDlg").close();
+    bdlg.showModal();
+  }
+  const readBox = () => ({
+    size: $("bSize").value, status: $("bStatus").value, carrier: $("bCarrier").value.trim(),
+    shipDate: $("bShip").value, tracking: $("bTrack").value.trim(),
+    to: $("bTo").value.trim(), toPhone: $("bToPhone").value.trim(), toAddr: $("bToAddr").value.trim(),
+  });
+  $("bxForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const n = editingBox; bdlg.close();
+    store.saveBox(n, readBox()).then(() => toast(`Box ${n} saved`)).catch(fail);
+  });
+  $("bxCancel").addEventListener("click", () => bdlg.close());
+  $("bxLabel").addEventListener("click", () => {
+    const n = editingBox, data = readBox();
+    bdlg.close();
+    store.saveBox(n, data).catch(fail);
+    boxMeta = { ...boxMeta, [n]: data };
+    openLabel(n);
+  });
+
+  // ---------- label ----------
+  function labelData(n) {
+    const m = boxMeta[n] || {};
+    const list = items.filter(x => x.box === n).sort((a, b) => a.category.localeCompare(b.category) || a.item.localeCompare(b.item));
+    const boxes = boxList();
+    return { m, list, idx: boxes.indexOf(n) + 1, of: boxes.length, to: m.to || guessRecipient(n) };
+  }
+  function renderLabel(n) {
+    const { m, list, idx, of, to } = labelData(n);
+    const L = el("div", "shiplabel");
+    const head = el("div", "sl-head");
+    head.append(el("b", null, `BOX ${n}`), el("span", null, `Balikbayan box · ${idx} of ${of}`));
+    const addr = el("div", "sl-addr");
+    const toD = el("div"); toD.append(el("span", "sl-k", "Deliver to"), el("span", "sl-to", to || "Recipient name"));
+    toD.append(m.toAddr ? el("p", null, m.toAddr) : el("p", "sl-missing", "Add address in box details"));
+    if (m.toPhone) toD.append(el("p", null, m.toPhone));
+    const fr = el("div"); fr.append(el("span", "sl-k", "From"), el("strong", null, settings.senderName || "Your name"));
+    fr.append(settings.senderAddr ? el("p", null, settings.senderAddr) : el("p", "sl-missing", "Add your address in Settings"));
+    if (settings.senderPhone) fr.append(el("p", null, settings.senderPhone));
+    addr.append(toD, fr);
+    const facts = el("div", "sl-facts");
+    [["Weight", wt(sumWt(list))], ["Declared value", money(sumVal(list))], ["Carrier", m.carrier || "—"], ["Tracking", m.tracking || "—"]]
+      .forEach(([k, v]) => { const d = el("div"); d.append(el("span", "sl-k", k), el("b", null, v)); facts.append(d); });
+    const ct = el("div", "sl-contents");
+    ct.append(el("span", "sl-k", `Contents · ${sumQty(list)} pcs${m.size ? " · " + m.size + " box" : ""}`));
+    const tb = el("table"); const th = el("thead"); const hr = el("tr");
+    [["Qty", "num"], ["Item", ""], ["Category", ""], ["Value", "num"]].forEach(([t, c]) => hr.append(el("th", c, t)));
+    th.append(hr); const bd = el("tbody");
+    list.forEach(x => { const r = el("tr"); [[String(x.qty), "num"], [x.item, ""], [catName(x.category), ""], [money(lineTotal(x)), "num"]].forEach(([t, c]) => r.append(el("td", c, t))); bd.append(r); });
+    tb.append(th, bd); ct.append(tb);
+    L.append(head, addr, facts, ct);
+    $("labelHost").replaceChildren(L);
+  }
+  function openLabel(n) { labelBox = n; renderLabel(n); $("labelDlg").showModal(); }
+  $("lbClose").addEventListener("click", () => $("labelDlg").close());
+  $("lbEdit").addEventListener("click", () => openBox(labelBox));
+  $("lbCopy").addEventListener("click", () => {
+    const { m, list, idx, of, to } = labelData(labelBox);
+    const lines = [
+      `BALIKBAYAN BOX ${labelBox} (${idx} of ${of})`, "",
+      "DELIVER TO:", to || "", m.toAddr || "", m.toPhone || "", "",
+      "FROM:", settings.senderName || "", settings.senderAddr || "", settings.senderPhone || "", "",
+      `Weight: ${wt(sumWt(list))}   Declared value: ${money(sumVal(list))}`,
+      `Carrier: ${m.carrier || "-"}   Tracking: ${m.tracking || "-"}`, "",
+      "CONTENTS:", ...list.map(x => `${x.qty} x ${x.item} (${catName(x.category)}) - ${money(lineTotal(x))}`),
+    ].filter((l, i, a) => !(l === "" && a[i - 1] === ""));
+    copyText(lines.join("\n"), "Label copied. Paste it into a document to print.");
+  });
+
+  // ---------- print-friendly packing list ----------
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const PRINT_CSS = `
+    *{box-sizing:border-box}
+    .doc{font:12px/1.45 "Segoe UI",Helvetica,Arial,sans-serif;color:#111;background:#fff}
+    .hint{max-width:780px;margin:16px auto;padding:10px 14px;border:1px dashed #999;border-radius:6px;font-size:13px;color:#444}
+    .sheet{background:#fff;max-width:780px;margin:0 auto 24px;padding:28px 32px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+    .top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:3px solid #111;padding-bottom:10px}
+    .k{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#555}
+    h1{font-size:26px;margin:2px 0 0;line-height:1.1}
+    h1 small{font-size:14px;font-weight:600;color:#555}
+    .facts{display:grid;grid-template-columns:auto auto;gap:1px 12px;font-size:11.5px;text-align:right}
+    .facts b{font-weight:600}
+    .addr{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0}
+    .addr div{border:1px solid #bbb;border-radius:4px;padding:8px 10px;min-height:70px}
+    .addr p{margin:2px 0 0;white-space:pre-line}
+    .addr .name{font-size:14px;font-weight:700}
+    .miss{color:#888;font-style:italic}
+    table{width:100%;border-collapse:collapse;font-size:11.5px}
+    th{text-align:left;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#444;border-bottom:1.5px solid #111;padding:6px 6px}
+    td{padding:6px;border-bottom:1px solid #ddd;vertical-align:top}
+    tr{page-break-inside:avoid}
+    .r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+    .chk{width:22px}
+    .sq{display:inline-block;width:13px;height:13px;border:1.5px solid #111;border-radius:2px;text-align:center;line-height:10px;font-size:11px;font-weight:700}
+    .cat{color:#555}
+    tfoot td{font-weight:700;border-top:1.5px solid #111;border-bottom:0}
+    .mix{margin:10px 0 0;font-size:11px;color:#444}
+    .sign{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}
+    .sign div{border-top:1px solid #111;padding-top:4px;font-size:10px;color:#555}
+    .foot{margin-top:18px;font-size:9.5px;color:#777;display:flex;justify-content:space-between;gap:12px}
+    .empty{padding:24px 0;color:#777;text-align:center}
+    @page{margin:14mm}
+    @media print{.hint{display:none}.sheet{box-shadow:none;margin:0;padding:0;max-width:none;page-break-after:always}.sheet:last-child{page-break-after:auto}}
+  `;
+  function sheetHTML(n) {
+    const { m, list, idx, of, to } = labelData(n);
+    const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const fact = (k, v) => v ? `<span class="k">${esc(k)}</span><b>${esc(v)}</b>` : "";
+    const byCat = {};
+    list.forEach(x => { byCat[x.category] = (byCat[x.category] || 0) + (x.qty || 0); });
+    const mix = CATS.filter(c => byCat[c.id]).map(c => `${c.name} ${byCat[c.id]}`).join(" · ");
+    const rows = list.map((x, i) => `<tr>
+        <td class="chk"><span class="sq">${x.packed ? "✓" : ""}</span></td>
+        <td class="r">${i + 1}</td>
+        <td>${esc(x.item)}</td>
+        <td class="cat">${esc(catName(x.category))}</td>
+        <td>${esc(x.recipient || "")}</td>
+        <td class="r">${x.qty}</td>
+        <td class="r">${esc(money(unitPrice(x)))}</td>
+        <td class="r">${esc(money(lineTotal(x)))}</td>
+        <td class="r">${x.weight ? esc(wt(x.weight)) : ""}</td>
+      </tr>`).join("");
+    return `<section class="sheet">
+      <div class="top">
+        <div><div class="k">Balikbayan box · Packing list</div><h1>Box ${n} <small>of ${of}</small></h1></div>
+        <div class="facts">${fact("Status", statusName(m.status || "packing"))}${fact("Size", m.size)}${fact("Carrier", m.carrier)}${fact("Tracking", m.tracking)}${fact("Ship date", fmtDate(m.shipDate))}</div>
+      </div>
+      <div class="addr">
+        <div><span class="k">Deliver to</span><p class="name">${esc(to) || '<span class="miss">Recipient name</span>'}</p>${m.toAddr ? `<p>${esc(m.toAddr)}</p>` : '<p class="miss">Address not set</p>'}${m.toPhone ? `<p>${esc(m.toPhone)}</p>` : ""}</div>
+        <div><span class="k">From</span><p class="name">${esc(settings.senderName) || '<span class="miss">Sender name</span>'}</p>${settings.senderAddr ? `<p>${esc(settings.senderAddr)}</p>` : '<p class="miss">Address not set</p>'}${settings.senderPhone ? `<p>${esc(settings.senderPhone)}</p>` : ""}</div>
+      </div>
+      ${list.length ? `<table>
+        <thead><tr><th class="chk">✓</th><th class="r">#</th><th>Item</th><th>Category</th><th>Recipient</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">Total</th><th class="r">Weight</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td></td><td></td><td colspan="3">${list.length} lines</td><td class="r">${sumQty(list)}</td><td></td><td class="r">${esc(money(sumVal(list)))}</td><td class="r">${esc(wt(sumWt(list)))}</td></tr></tfoot>
+      </table>
+      <p class="mix">Pieces by category: ${esc(mix)}</p>` : '<p class="empty">No items in this box yet.</p>'}
+      <div class="sign"><div>Packed by</div><div>Date sealed</div><div>Checked by</div></div>
+      <div class="foot"><span>Keep one copy inside the box and one with your receipt.</span><span>Printed ${esc(today)} · Box ${idx} of ${of}</span></div>
+    </section>`;
+  }
+  const scopeBoxes = scope => scope === "all" ? boxList() : [Number(scope)];
+  function listDocument(scope) {
+    const nums = scopeBoxes(scope);
+    const title = scope === "all" ? "Balikbayan packing lists" : `Balikbayan Box ${scope} packing list`;
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><style>${PRINT_CSS} body{margin:0;background:#eee}</style></head><body><div class="doc"><p class="hint">Press Ctrl+P (⌘P on Mac) to print. Each box prints on its own page.</p>${nums.map(sheetHTML).join("")}</div></body></html>`;
+  }
+
+  const ldlg = $("listDlg");
+  const paperRoot = $("plPaper").attachShadow({ mode: "open" });
+  let downloads = null;
+  function renderList() {
+    const scope = $("plScope").value;
+    paperRoot.innerHTML = `<style>${PRINT_CSS} .sheet{margin:0 auto 12px;min-width:640px}</style><div class="doc" style="background:transparent">${scopeBoxes(scope).map(sheetHTML).join("")}</div>`;
+  }
+  function openList(scope) {
+    const boxes = boxList();
+    if (!boxes.length) { toast("Add items first. Each box gets its own packing list."); return; }
+    $("plScope").replaceChildren(...[...(boxes.length > 1 ? [["all", "All boxes"]] : []), ...boxes.map(n => [String(n), "Box " + n])].map(([v, t]) => { const o = el("option", null, t); o.value = v; return o; }));
+    $("plScope").value = String(scope === "all" && boxes.length < 2 ? boxes[0] : scope);
+    $("plDownload").hidden = !downloads;
+    $("plPrint").hidden = !STANDALONE;
+    $("plHint").textContent = STANDALONE
+      ? "Tap Print to print or save as PDF. Each box prints on its own page."
+      : downloads
+        ? "Download it, open the file, then press Ctrl+P (⌘P on Mac) to print. Each box prints on its own page."
+        : "Downloading isn't available in this view. Copy the list as text and paste it into a document to print.";
+    if ($("labelDlg").open) $("labelDlg").close();
+    renderList();
+    if (!ldlg.open) ldlg.showModal();
+  }
+  $("plScope").addEventListener("change", renderList);
+  $("plClose").addEventListener("click", () => ldlg.close());
+  $("allListsBtn").addEventListener("click", () => openList(ui.box === "all" ? "all" : ui.box));
+  $("lbList").addEventListener("click", () => openList(labelBox));
+  $("plCopy").addEventListener("click", () => {
+    const text = scopeBoxes($("plScope").value).map(n => {
+      const { m, list, of, to } = labelData(n);
+      return [
+        `BOX ${n} OF ${of} - PACKING LIST`,
+        `To: ${to || "-"}${m.toAddr ? ", " + m.toAddr.replace(/\n/g, ", ") : ""}${m.toPhone ? ", " + m.toPhone : ""}`,
+        `From: ${settings.senderName || "-"}${settings.senderPhone ? ", " + settings.senderPhone : ""}`,
+        `Carrier: ${m.carrier || "-"}   Tracking: ${m.tracking || "-"}`, "",
+        ...list.map((x, i) => `[${x.packed ? "x" : " "}] ${i + 1}. ${x.item} (${catName(x.category)}) x${x.qty} - ${money(lineTotal(x))}${x.weight ? " - " + wt(x.weight) : ""}${x.recipient ? " - for " + x.recipient : ""}`),
+        "", `Total: ${sumQty(list)} pcs, ${money(sumVal(list))}, ${wt(sumWt(list))}`,
+      ].join("\n");
+    }).join("\n\n----------------------------------------\n\n");
+    copyText(text, "Packing list copied.");
+  });
+  $("plDownload").addEventListener("click", async () => {
+    if (!downloads) return;
+    const scope = $("plScope").value;
+    const filename = scope === "all" ? "balikbayan-packing-lists.html" : `balikbayan-box-${scope}-packing-list.html`;
+    try {
+      await downloads.save({ filename, data: listDocument(scope) });
+      toast("Saved. Open the file and press Ctrl+P to print.");
+    } catch (e) {
+      const code = e && e.code;
+      if (code === "declined") return;
+      if (code === "rate_limited") toast("A download prompt is already open.");
+      else { downloads = null; $("plDownload").hidden = true; toast("Downloading isn't available here. Use Copy as text instead."); }
+    }
+  });
+
+  const printRoot = $("printRoot").attachShadow({ mode: "open" });
+  $("plPrint").addEventListener("click", () => {
+    const nums = scopeBoxes($("plScope").value);
+    printRoot.innerHTML = `<style>${PRINT_CSS} .sheet{box-shadow:none;margin:0;padding:0;max-width:none;page-break-after:always}.sheet:last-child{page-break-after:auto}</style><div class="doc">${nums.map(sheetHTML).join("")}</div>`;
+    ldlg.close();
+    setTimeout(() => window.print(), 60);
+  });
+
+  // Browser download for the installed app (the artifact uses the downloads capability instead)
+  const localDownloads = {
+    async save({ filename, data }) {
+      const blob = new Blob([data], { type: filename.endsWith(".json") ? "application/json" : "text/html" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = filename;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      return { status: "saved" };
+    },
+  };
+
+  // ---------- backup (installed app) ----------
+  $("bkSave").addEventListener("click", () => {
+    if (!downloads) return;
+    const stamp = new Date().toISOString().slice(0, 10);
+    const data = JSON.stringify({ app: "balikbayan-box-planner", version: 1, savedAt: new Date().toISOString(), items, boxMeta, checks, settings }, null, 2);
+    downloads.save({ filename: `balikbayan-backup-${stamp}.json`, data }).then(() => toast("Backup saved to your downloads")).catch(() => {});
+  });
+  $("bkFile").addEventListener("change", async e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const d = JSON.parse(await file.text());
+      if (!d || !Array.isArray(d.items)) throw new Error("not a backup");
+      items = d.items.filter(x => x && typeof x.item === "string" && Number.isFinite(Number(x.box)))
+        .map(x => ({ ...x, box: Number(x.box), id: x.id || newId() }));
+      boxMeta = d.boxMeta && typeof d.boxMeta === "object" ? d.boxMeta : {};
+      checks = d.checks && typeof d.checks === "object" ? d.checks : {};
+      settings = { ...DEFAULTS, ...(d.settings || {}) };
+      lsSet(LS.items, items); lsSet(LS.boxes, boxMeta); lsSet(LS.checks, checks); lsSet(LS.settings, settings);
+      $("settings").close();
+      renderAll(); renderChecklist();
+      toast(`Restored ${items.length} ${items.length === 1 ? "item" : "items"}`);
+    } catch {
+      toast("That file isn't a planner backup.");
+    }
+  });
+
+  // ---------- settings ----------
+  const sdlg = $("settings");
+  $("sCur").replaceChildren(...CURRENCIES.map(c => { const o = el("option", null, c); o.value = c; return o; }));
+  $("settingsBtn").addEventListener("click", () => {
+    $("sCur").value = settings.currency;
+    $("sLimit").value = settings.limit || "";
+    $("sWUnit").value = settings.wUnit;
+    $("sWLimit").value = settings.wLimit || "";
+    $("sName").value = settings.senderName || "";
+    $("sPhone").value = settings.senderPhone || "";
+    $("sAddr").value = settings.senderAddr || "";
+    $("backupField").hidden = !STANDALONE;
+    const ex = items.filter(x => x.example).length;
+    $("clearEx").disabled = !ex; $("clearEx").classList.remove("armed"); $("clearEx").textContent = "Remove example items";
+    $("exCount").textContent = ex ? `${ex} example ${ex === 1 ? "item" : "items"} in the list` : "None left";
+    sdlg.showModal();
+  });
+  $("setCancel").addEventListener("click", () => sdlg.close());
+  $("setForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const next = {
+      currency: $("sCur").value,
+      limit: Math.max(0, parseFloat($("sLimit").value) || 0),
+      wUnit: $("sWUnit").value,
+      wLimit: Math.max(0, parseFloat($("sWLimit").value) || 0),
+      senderName: $("sName").value.trim(),
+      senderPhone: $("sPhone").value.trim(),
+      senderAddr: $("sAddr").value.trim(),
+    };
+    sdlg.close();
+    store.saveSettings(next).then(() => toast("Settings saved")).catch(fail);
+  });
+  $("clearEx").addEventListener("click", async () => {
+    const b = $("clearEx");
+    if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Confirm remove"; return; }
+    sdlg.close();
+    const ex = items.filter(x => x.example);
+    try { for (const x of ex) await store.deleteItem(x.id); toast(`Removed ${ex.length} example ${ex.length === 1 ? "item" : "items"}`); }
+    catch (e) { fail(e); }
+  });
+
+  // ---------- toolbar ----------
+  const cf = $("catFilter");
+  cf.replaceChildren(...[{ id: "all", name: "All categories" }, ...CATS].map(c => { const o = el("option", null, c.name); o.value = c.id; return o; }));
+  cf.addEventListener("change", () => { ui.cat = cf.value; render(); });
+  $("rcptFilter").addEventListener("change", e => { ui.rcpt = e.target.value; render(); });
+  $("q").addEventListener("input", e => { ui.q = e.target.value; render(); });
+  $("addBtn").addEventListener("click", () => openEditor(null));
+  $("emptyAdd").addEventListener("click", () => openEditor(null));
+  document.querySelectorAll("th[data-sort] button").forEach(b => b.addEventListener("click", () => {
+    const k = b.parentElement.dataset.sort;
+    if (ui.sort === k) ui.dir = -ui.dir; else { ui.sort = k; ui.dir = 1; }
+    render();
+  }));
+  $("packBoxBtn").addEventListener("click", async () => {
+    const todo = items.filter(x => x.box === ui.box && !x.packed);
+    const n = ui.box;
+    try { for (const x of todo) await store.saveItem(x.id, { ...strip(x), packed: true }); toast(`Box ${n}: all items packed`); }
+    catch (e) { fail(e); }
+  });
+
+  function setDensity(compact) {
+    document.body.classList.toggle("compact", compact);
+    $("densityBtn").setAttribute("aria-pressed", String(compact));
+    $("densityBtn").textContent = compact ? "Comfortable" : "Compact";
+    try { localStorage.setItem("bb-density", compact ? "compact" : ""); } catch {}
+  }
+  $("densityBtn").addEventListener("click", () => setDensity(!document.body.classList.contains("compact")));
+  try { setDensity(localStorage.getItem("bb-density") === "compact"); } catch { setDensity(false); }
+
+  function copyText(text, okMsg) {
+    const fallback = () => {
+      const ta = el("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.append(ta); ta.select();
+      let ok = false; try { ok = document.execCommand("copy"); } catch {}
+      ta.remove();
+      toast(ok ? okMsg : "Copy isn't allowed here. Select the text and copy it instead.");
+    };
+    try { navigator.clipboard.writeText(text).then(() => toast(okMsg), fallback); } catch { fallback(); }
+  }
+  $("copyBtn").addEventListener("click", () => {
+    const esc = s => /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    const list = [...items].sort((a, b) => (a.box - b.box) || a.category.localeCompare(b.category) || a.item.localeCompare(b.item));
+    const text = [["Box", "Category", "Item", "Quantity", `Unit price (${settings.currency})`, `Total price (${settings.currency})`, `Weight (${settings.wUnit})`, "Recipient", "Packed"].join(",")]
+      .concat(list.map(x => [x.box, catName(x.category), x.item, x.qty, unitPrice(x).toFixed(2), lineTotal(x).toFixed(2), Number(x.weight) || 0, x.recipient || "", x.packed ? "Yes" : "No"].map(v => esc(String(v))).join(",")))
+      .join("\n");
+    copyText(text, "Inventory copied. Paste it into a spreadsheet or note.");
+  });
+
+  // ---------- tabs ----------
+  const tabs = document.querySelectorAll(".tabs button");
+  function showTab(name) {
+    tabs.forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+    ["inventory", "recipients", "checklist"].forEach(t => { $("tab-" + t).hidden = name !== t; });
+    try { localStorage.setItem("bb-tab", name); } catch {}
+  }
+  tabs.forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  let startTab = "inventory";
+  try { const h = location.hash.slice(1); startTab = ["inventory", "recipients", "checklist"].includes(h) ? h : (localStorage.getItem("bb-tab") || "inventory"); } catch {}
+  if (!["inventory", "recipients", "checklist"].includes(startTab)) startTab = "inventory";
+  showTab(startTab);
+
+  $("ckReset").addEventListener("click", () => {
+    const b = $("ckReset");
+    const disarm = () => { b.dataset.armed = ""; b.textContent = "Reset"; b.classList.remove("danger", "armed"); };
+    if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "Confirm reset"; b.classList.add("danger", "armed"); setTimeout(disarm, 3000); return; }
+    disarm();
+    store.saveChecks({}).then(() => toast("Checklist reset")).catch(fail);
+  });
+
+  // ---------- toast ----------
+  let toastTimer, toastFn;
+  function toast(msg, actLabel, fn) {
+    $("toastMsg").textContent = msg;
+    const a = $("toastAct"); a.hidden = !fn; a.textContent = actLabel || ""; toastFn = fn;
+    const t = $("toast"); t.hidden = true; void t.offsetWidth; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; toastFn = null; }, fn ? 6000 : 2600);
+  }
+  $("toastAct").addEventListener("click", () => { const f = toastFn; $("toast").hidden = true; toastFn = null; if (f) f(); });
+
+  // ---------- boot ----------
+  renderAll();
+  renderChecklist();
+
+  const useLocal = () => {
+    items = lsGet(LS.items, []);
+    checks = lsGet(LS.checks, {});
+    boxMeta = lsGet(LS.boxes, {});
+    settings = { ...DEFAULTS, ...lsGet(LS.settings, {}) };
+    $("storeNote").textContent = STANDALONE
+      ? "Saved on this device. Use Settings → Backup to keep a copy."
+      : "Saved in this browser only.";
+    renderAll(); renderChecklist();
+  };
+
+  if (!STANDALONE) {
+    window.claude.use("downloads").then(d => { downloads = d; }).catch(() => {});
+    window.claude.use("db").then(db => {
+      if (!db) return useLocal();
+      store.db = db;
+      $("storeNote").textContent = "Saved to this page. Changes sync for everyone who opens it.";
+      db.collection("items").onSnapshot(snap => {
+        items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAll();
+      }, () => toast("Lost connection to the saved list. Reload to reconnect."));
+      db.collection("boxes").onSnapshot(snap => {
+        const next = {};
+        snap.docs.forEach(d => { const n = parseInt(d.id.replace("box-", ""), 10); if (n) next[n] = d.data(); });
+        boxMeta = next;
+        renderAll();
+      }, () => {});
+      db.doc("checklist/main").onSnapshot(snap => {
+        checks = (snap.exists && snap.data().done) || {};
+        renderChecklist();
+      }, () => {});
+      db.doc("settings/main").onSnapshot(snap => {
+        if (snap.exists) settings = { ...DEFAULTS, ...snap.data() };
+        renderAll();
+      }, () => {});
+    }).catch(useLocal);
+  } else {
+    downloads = localDownloads;
+    useLocal();
+  }
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
